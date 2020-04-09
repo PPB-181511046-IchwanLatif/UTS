@@ -96,8 +96,6 @@ public class SampleContentProvider extends ContentProvider {
         }
     }
 
-
-    @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
         switch (MATCHER.match(uri)) {
@@ -106,7 +104,7 @@ public class SampleContentProvider extends ContentProvider {
             case CODE_CHEESE_ITEM:
                 return "vnd.android.cursor.item/" + AUTHORITY + "." + Cheese.TABLE_NAME;
             default:
-                throw new IllegalArgumentException("Unknown URI: " + uri);
+                return null;
         }
     }
 
@@ -162,7 +160,7 @@ public class SampleContentProvider extends ContentProvider {
                     return 0;
                 }
                 final Cheese cheese = Cheese.fromContentValues(values);
-                cheese.id = ContentUris.parseId(uri);
+                cheese.setId(ContentUris.parseId(uri));
                 final int count = SampleDatabase.getInstance(context).cheese()
                         .update(cheese);
                 context.getContentResolver().notifyChange(uri, null);
