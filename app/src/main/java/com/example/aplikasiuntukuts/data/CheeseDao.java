@@ -21,6 +21,7 @@ package com.example.aplikasiuntukuts.data;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 import android.database.Cursor;
@@ -45,7 +46,7 @@ public interface CheeseDao {
      * @param cheese A new cheese.
      * @return The row ID of the newly inserted cheese.
      */
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(Cheese cheese);
 
     /**
@@ -94,5 +95,4 @@ public interface CheeseDao {
 
     @Query("SELECT * FROM " + Cheese.TABLE_NAME)
     LiveData<List<Cheese>> getAllCheese();
-
 }

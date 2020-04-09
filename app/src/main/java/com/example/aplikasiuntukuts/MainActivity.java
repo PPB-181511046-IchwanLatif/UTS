@@ -27,6 +27,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.loader.app.LoaderManager;
@@ -39,6 +40,7 @@ import com.example.aplikasiuntukuts.data.Cheese;
 import com.example.aplikasiuntukuts.data.CheeseViewModel;
 import com.example.aplikasiuntukuts.provider.SampleContentProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -52,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int LOADER_CHEESES = 1;
 
+    private CheeseViewModel vm;
     private CheeseAdapter mCheeseAdapter;
 
     @Override
@@ -61,10 +64,18 @@ public class MainActivity extends AppCompatActivity {
 
         final RecyclerView list = findViewById(R.id.list);
         list.setLayoutManager(new LinearLayoutManager(list.getContext()));
-        mCheeseAdapter = new CheeseAdapter(this);
+        mCheeseAdapter = new CheeseAdapter();
         list.setAdapter(mCheeseAdapter);
 
-        LoaderManager.getInstance(this).initLoader(LOADER_CHEESES, null, mLoaderCallbacks);
+        vm = new ViewModelProvider(this).get(CheeseViewModel.class);
+        vm.getmAllCheese().observe(this, new Observer<List<Cheese>>() {
+            @Override
+            public void onChanged(List<Cheese> cheeses) {
+                mCheeseAdapter.setCheeses(cheeses);
+            }
+        });
+
+//        LoaderManager.getInstance(this).initLoader(LOADER_CHEESES, null, mLoaderCallbacks);
     }
 
     private final LoaderManager.LoaderCallbacks<Cursor> mLoaderCallbacks =
@@ -81,7 +92,17 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-                    mCheeseAdapter.setCheeses(data);
+                    ArrayList<Cheese> dataCheese = new ArrayList<>();
+
+                    do {
+                        long id = data.getLong(data.getColumnIndex(Cheese.COLUMN_ID));
+                        String name = data.getString(data.getColumnIndex(Cheese.COLUMN_NAME));
+
+                        dataCheese.add(new Cheese(id, name));
+                    }
+                    while (data.moveToNext());
+
+                    mCheeseAdapter.setCheeses(dataCheese);
                 }
 
                 @Override
@@ -93,14 +114,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static class CheeseAdapter extends RecyclerView.Adapter<CheeseAdapter.ViewHolder> {
 
-        private Cursor mCursor;
+//        private Cursor mCursor;
 
         private List<Cheese> mCheese;
-        private CheeseViewModel vm;
-
-        CheeseAdapter(Context context) {
-            vm = ViewModelProviders.of((MainActivity)context).get(CheeseViewModel.class);
-        }
 
         @Override
         @NonNull
@@ -110,19 +126,19 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            if (mCursor.moveToPosition(position)) {
-                holder.mText.setText(mCursor.getString(
-                        mCursor.getColumnIndexOrThrow(Cheese.COLUMN_NAME)));
+            if (mCheese.get(position) != null) {
+                Cheese current = mCheese.get(position);
+                holder.mText.setText(current.getName());
             }
         }
 
         @Override
         public int getItemCount() {
-            return mCursor == null ? 0 : mCursor.getCount();
+            return mCheese == null ? 0 : mCheese.size();
         }
 
-        void setCheeses(Cursor cursor) {
-            mCursor = cursor;
+        void setCheeses(List<Cheese> cheeses) {
+            mCheese = cheeses;
             notifyDataSetChanged();
         }
 

@@ -19,7 +19,9 @@ public class CheeseViewModel extends AndroidViewModel {
 
     }
 
-    LiveData<List<Cheese>> getmAllCheese(){
+    public LiveData<List<Cheese>> getmAllCheese(){
         return mAllCheese;
     }
+
+
 }
